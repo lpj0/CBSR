@@ -26,6 +26,7 @@ Data Set: [DIV2K 800 training images](https://data.vision.ee.ethz.ch/cvl/DIV2K/)
  * For image denoising
 ```python
 python main.py --model CBSR --save CBSR --scale 2  --save_results --print_model --n_colors 1 --test_only --self_ensemble --resume -1 --pre_train pretrain_model/ --data_test Set5
+```
 
 ## Contact
 Please send email to lpj008@126.com
