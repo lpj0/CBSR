@@ -20,7 +20,7 @@ and non-blind SR, which can be jointly end-to-end learned from training data and
 Data Set: [DIV2K 800 training images](https://data.vision.ee.ethz.ch/cvl/DIV2K/).
 
 ## Test
-* Pretraining model can be found [here](https://drive.google.com/drive/folders/15_CFSFcD6UxyHj74keNQpWB8peeHQ3wb?usp=sharing).
+* Pretraining model can be found [here]().
 * Test commond
 
  * For image denoising
