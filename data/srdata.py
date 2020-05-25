@@ -40,24 +40,12 @@ class SRData(data.Dataset):
             num = 96000
 
             self.hr_data = mat['images']['labels'][:num, :, :, :]
-            self.lr_data = mat['images']['data'][:num, :, :, :]
-            self.PCs = mat['images']['PCs'][:num]
-            self.Scales = mat['images']['Scales'][:num]
-            self.k_pcas = mat['images']['k_pcas'][:num, :]
-            self.noise_sigma = mat['images']['noise_simga'][:num, :, :, :]
-            self.KSigma = mat['images']['KSigma'][:num, :3]
-
-
-
-            # print(mat['images']['labels'].shape)
-            # self.hr_data = mat['images']['labels'][:,:,:,:]
-            self.num = self.hr_data.shape[0] * 4
+            
+            self.num = self.hr_data.shape[0]
 
 
 
 
-
-            print(self.num)
             self.images_hr = self._scan()
             # print(self.hr_data.shape[0])
 
@@ -99,11 +87,7 @@ class SRData(data.Dataset):
             lr, hr, noise_sigma = common.get_patch_three(lr, hr, noise_sigma, self.args.patch_size)
 
 
-            # pcas_coff = np.squeeze(pcas_coff.astype(np.float32))
-            # pcas_coff_tensor = torch.from_numpy(pcas_coff)
-
-            # sigma, lr, hr = self._get_patch(hr, filter, filename, scale_factor, quality_factor, sigma0, sigma1, blur_falg)
-            # noise_sigma, lr, hr = common.set_channel([noise_sigma, lr, hr], self.args.n_colors)
+            
             lh, lw = lr.shape[:2]
             # hh, hw = hr.shape[:2]
 
