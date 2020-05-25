@@ -17,12 +17,8 @@ and non-blind SR, which can be jointly end-to-end learned from training data and
 * scipy 1.0.0
 
 ## Network Architecture
-%The architecture of CBSR, which is comprised of three parts: 
- % a) noise estimation subnet CNN_\sigma takes LR image y with size m×n×3 and JPEG quality factor q with size m×n×1 as input and predicts the m×n×3 noise level map \sigma; 
- %  b)  blur kernel estimation subnet CNN_k takes y, q, s and \sigma as input and predicts the m×n×3 covariance matrix $\hat{ \boldsymbol{\Sigma} }$ of blur kernel, which is then transformed to the m×n×15 k_PCA matrix; 
-%   c)  non-blind SISR subnet CNN$_\textbf{\textit{x}}$ takes the bicubic interpolations of $\textbf{\textit{y}}$, $\textbf{\textit{q}}$, $\textbf{\textit{s}}$, $\hat{ \boldsymbol{\sigma}}$ and $\hat{ \textbf{\textit{k}}}_{PCA}$ with size $s \cdot m \times s \cdot n \times 23$ as input and predicts the final SR image $\hat{ \textbf{\textit{x}}}$ with size $s \cdot m \times s \cdot n \times 3$.
 <p align="center">
-    <img src="./images/arch_vr01.jpg" width="100%">
+    <img src="./images/arch_vr01.png" width="100%">
     <br />    <small>  </small>
 </p>
 
