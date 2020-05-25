@@ -29,8 +29,6 @@ Data Set: [DIV2K 800 training images](https://data.vision.ee.ethz.ch/cvl/DIV2K/)
 ## Test
 * Pretraining model can be found [here]().
 * Test commond
-
- * For image denoising
 ```python
 --model CBSR --save CBSR --scale 2 --n_feats 64 --save_results --print_model --n_GPUs 1 --testpath F:/MyCode/Test/CBSR/Test_CBSR/Set5/x2/ --ext_tt .png --n_resblocks 2 --resume -1 --pre_train your_path
 ```
