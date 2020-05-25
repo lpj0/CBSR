@@ -25,35 +25,18 @@ class SRData(data.Dataset):
         self.benchmark = benchmark
         self.scale = args.scale
         self.idx_scale = 0
-        kernel_train = sio.loadmat('data/kernels_matrix_ms.mat')
-        # kernel_train = h5py.File('../Kernel_PCA/kernels_matrix_ms+pca.mat')
-        # self.kernel_train = kernel_train['ks']['kernels'][0][0][0]
-        # self.covmat_train = kernel_train['ks']['sigma_xy_ori'][0][0][0]
+        
+        
 
-        # print(self.pcas_train[0])
-        # mat = h5py.File('../../imdb_RGB2.mat')
+       
         if train:
-            # kernel_train = h5py.File('../Kernel_PCA/kernels_matrix_ms_pca.mat')
-            # # print(kernel_train.keys())
-            #
-            # self.pcas_train = [kernel_train[element[0]][:, :] for element in kernel_train['pcas_c']]
-
+            kernel_train = sio.loadmat('data/kernels_matrix_ms.mat')
+     
             mat = h5py.File('/home/zhongzhaoyu/Desktop/disks/D/data_gen/CBSR_FT/CBSR_FT_0.mat', 'r')
-            num = 96000
 
             self.hr_data = mat['images']['labels'][:, :, :, :]
-            self.lr_data = mat['images']['data'][:, :, :, :]
-            # self.PCs = mat['images']['PCs'][:]
-            # self.Scales = mat['images']['Scales'][:]
-            # self.k_pcas = mat['images']['k_pcas'][:, :]
-            # self.noise_sigma = mat['images']['noise_simga'][:, :, :, :]
-            # self.KSigma = mat['images']['KSigma'][:, :3]
-
-
-
-            # print(mat['images']['labels'].shape)
-            # self.hr_data = mat['images']['labels'][:,:,:,:]
-            self.num = self.hr_data.shape[0] * 4
+          
+            self.num = self.hr_data.shape[0]
 
 
 
@@ -92,42 +75,21 @@ class SRData(data.Dataset):
 
         # print(idx)
         if self.train:
-            lr, hr, noise_sigma, filename = self._load_file(idx)
-            # quality_factor =  self.PCs[idx]
-            # scale_factor = self.Scales[idx]
-            # # pcas_coff = self.k_pcas[idx, :]
-            # KSigma = self.KSigma[idx, :]
-            # covmat_tensor = KSigma * scale_factor * scale_factor / 255.0
-            lr, hr = common.get_patch_two(lr, hr, self.args.patch_size)
+            ## this code is not released
+            hr, filename = self._load_file(idx)
+            ## lr_tensor
+            
+            ## quality_factor_tensor
+            
+            ## noise_sigma_tensor
+            
+            ## scale_factor_tensor
+            
+            ## covmat_tensor
+            
+            
 
-
-            # pcas_coff = np.squeeze(pcas_coff.astype(np.float32))
-            # pcas_coff_tensor = torch.from_numpy(pcas_coff)
-
-            # sigma, lr, hr = self._get_patch(hr, filter, filename, scale_factor, quality_factor, sigma0, sigma1, blur_falg)
-            # noise_sigma, lr, hr = common.set_channel([noise_sigma, lr, hr], self.args.n_colors)
-            lh, lw = lr.shape[:2]
-            # hh, hw = hr.shape[:2]
-
-
-            # covmat_tensor = torch.mul(covmat_tensor.view(3, 1, 1).contiguous(), torch.ones([1, lh, lw]).float())
-            # pcas_coff_tensor = torch.mul(pcas_coff_tensor.view(15, 1, 1).contiguous(), torch.ones([1, lh//2, lw//2]).float())
-
-            # covmat_tensor = np.squeeze(covmat_tensor.astype(np.float32))
-            covmat_tensor =  0 #torch.from_numpy(covmat_tensor)
-            scale_factor_tensor =  torch.ones([1, lh//4, lw//4]).float()
-            scale_factor_tensor.mul_(4 / 255.0)
-            # covmat_tensor = torch.mul(covmat_tensor.view(3, 1, 1).contiguous(),
-            #                           torch.ones([1, lh//2, lw//2]).float())
-
-            quality_factor_tensor = torch.ones([1, lh//4, lw//4]).float()
-            quality_factor_tensor.mul_(int(110 - 90) / 255.0)
-            noise_sigma_tensor = torch.ones(1)
-            lr_tensor, hr_tensor = common.np2Tensor([lr, hr], self.args.rgb_range)
-
-            # noise_sigma_tensor, lr_tensor, hr_tensor = common.np2Tensor([noise_sigma, lr, hr], self.args.rgb_range)
-
-            # lr_tensor = torch.cat((lr_tensor, quality_factor_tensor), 0)0
+            
             return lr_tensor, quality_factor_tensor, noise_sigma_tensor, scale_factor_tensor, covmat_tensor, hr_tensor, filename
         else:
             lr, hr, filename = self._load_file(idx)
@@ -161,8 +123,8 @@ class SRData(data.Dataset):
             hr = 0 #imread(hr)
             lr = self._get_patch_test(lr)
             # w, h = lr.shape[:2]
-            # lr = imresize_np(lr, 4)
-            # lr = np.array(np.round(np.clip(lr, 0, 255)), np.uint8)
+            lr = imresize_np(lr, self.args.scale[0])
+            lr = np.array(np.round(np.clip(lr, 0, 255)), np.uint8)
             # hr = hr[:w*2, :h*2, :]
 
 
@@ -173,16 +135,9 @@ class SRData(data.Dataset):
             hr = np.load(hr)
         elif self.args.ext == 'mat' or self.train:
             hr = self.hr_data[idx, :, :, :]
-            lr = self.lr_data[idx, :, :, :]
-            # noise_sigma = self.noise_sigma[idx, :, :, :]
-
-            hr = np.squeeze(hr.transpose((1, 2, 0)))
-            lr = np.squeeze(lr.transpose((1, 2, 0)))
-            noise_sigma = hr
-            # noise_sigma = np.squeeze(noise_sigma.transpose((1, 2, 0)))
-            lr, hr, noise_sigma = common.augment([lr, hr, noise_sigma])
+            
             filename = str(100000+idx) + '.png'
-            return lr, hr, noise_sigma, filename
+            return hr
         else:
             filename = str(idx + 1)
 
