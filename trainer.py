@@ -102,49 +102,36 @@ class Trainer():
             _, _, hei, wid = hr.data.size()
             _, _, hei_l, wid_l = lr.data.size()
 
-            with torch.no_grad():
-                sigma_est = self.model_NLEst(F.interpolate(lr, [hei_l // 2, wid_l // 2], mode='bicubic'),
-                                             torch.cat((scale_factor, quality_factor), 1), 0)
-                self.optimizer_KMEst.zero_grad()
-                sigma_est = F.interpolate(sigma_est.detach(), [hei_l // 4, wid_l // 4],
-                                          mode='bicubic')  # .permute(0, 1, 3, 2).contiguous()
-                ker_est = self.model_KMEst(F.interpolate(lr, [hei_l // 2, wid_l // 2], mode='bicubic'),
-                                           torch.cat((scale_factor, quality_factor, sigma_est.detach()), 1), 0)
-                ker_est = ker_est * 255.0 / (
-                F.interpolate(scale_factor * 255.0, [hei_l // 2, wid_l // 2], mode='bicubic') ** 2)
-                # ker_est = F.interpolate(ker_est, [hei // 32, wid // 32], mode='bicubic')
-                ker_est = cov2pca(matrix.cuda(), V_pca, ker_est)
+            
 
-            # sigma_est = self.model_NLEst(F.interpolate(lr, [hei_l // 2, wid_l // 2], mode='bicubic'),
-            #                              torch.cat((scale_factor, quality_factor), 1), 0)
+            sigma_est = self.model_NLEst(lr, torch.cat((scale_factor, quality_factor), 1), 0)
             #
-            # loss_nlest = self.loss_NLEst(sigma_est, sigma)
+            loss_nlest = self.loss_NLEst(sigma_est, sigma)
             #
-            # self.optimizer_NLEst.zero_grad()
-            # loss_nlest.backward()
-            # self.optimizer_NLEst.step()
+            self.optimizer_NLEst.zero_grad()
+            loss_nlest.backward()
+            self.optimizer_NLEst.step()
             #
-            # sigma_est = F.interpolate(sigma_est.detach(), [hei_l // 4, wid_l // 4], mode='bicubic')
-            # ker_est = self.model_KMEst(F.interpolate(lr, [hei_l // 2, wid_l // 2], mode='bicubic'),
-            #                            torch.cat((scale_factor, quality_factor, sigma_est.detach()), 1), 0)
+            sigma_est = F.interpolate(sigma_est.detach(), [hei_l, wid_l], mode='bicubic')
+            ker_est = self.model_KMEst(lr, torch.cat((scale_factor, quality_factor, sigma_est.detach()), 1), 0)
             #
             #
-            # loss_mest = self.loss_KMEst(ker_est, covmat)
-            # self.optimizer_KMEst.zero_grad()
-            # loss_mest.backward()
-            # self.optimizer_KMEst.step()
+            loss_mest = self.loss_KMEst(ker_est, covmat)
+            self.optimizer_KMEst.zero_grad()
+            loss_mest.backward()
+            self.optimizer_KMEst.step()
 
-            # ker_est = ker_est * 255.0 / (F.interpolate(scale_factor * 255.0, [hei_l // 2, wid_l // 2], mode='bicubic') ** 2)
-            # ker_est = F.interpolate(ker_est, [hei // 16, wid // 16], mode='bicubic')
-            # ker_est = cov2pca(matrix.cuda(), V_pca, ker_est)
+            ker_est = ker_est * 255.0 / (F.interpolate(scale_factor * 255.0, [hei_l, wid_l], mode='bicubic') ** 2)
+      
+            ker_est = cov2pca(matrix.cuda(), V_pca, ker_est)
 
 
 
             idx_scale = 0
-            sigma_est = F.interpolate(sigma_est, [hei // 2, wid // 2], mode='bicubic')
-            quality_factor = F.interpolate(quality_factor, [hei // 2, wid // 2], mode='bicubic')
-            scale_factor = F.interpolate(scale_factor, [hei // 2, wid // 2], mode='bicubic')
-            ker_est = F.interpolate(ker_est, [hei // 2, wid // 2], mode='bicubic')
+            sigma_est = F.interpolate(sigma_est, [hei, wid], mode='bicubic')
+            quality_factor = F.interpolate(quality_factor, [hei, wid], mode='bicubic')
+            scale_factor = F.interpolate(scale_factor, [hei, wid], mode='bicubic')
+            ker_est = F.interpolate(ker_est, [hei, wid], mode='bicubic')
 
             deg_map = torch.cat((quality_factor.detach(), sigma_est.detach(), scale_factor.detach(), ker_est.detach()), 1)
 
@@ -220,33 +207,35 @@ class Trainer():
                     _, _, hei, wid = lr_.data.size()
 
                     hei, wid = lr_.shape[2:]
+                    
+                    hei, wid = hei // 4, wid //4
 
-                    quality_factor = (105.0 - quality_factor)/255.0*torch.ones([1, 1, hei//4, wid//4]).float().cuda()
+                    quality_factor = (105.0 - quality_factor) /2 55.0*torch.ones([1, 1, hei, wid]).float().cuda()
                     sf = scale / 255.0
 
 
 
-                    scale_factor = torch.ones(1, 1, hei//4, wid//4).float().cuda() * sf
+                    scale_factor = torch.ones(1, 1, hei, wid).float().cuda() * sf
 
-                    sigma_est = self.model_NLEst(F.interpolate(lr_, [hei // 2, wid // 2], mode='bicubic'),
-                                                 torch.cat((scale_factor, quality_factor), 1), 0)
+                    lr_ = F.interpolate(lr_, [hei*2, wid*2], mode='bicubic')
+                    sigma_est = self.model_NLEst(lr_, torch.cat((scale_factor, quality_factor), 1), 0)
 
 
 
-                    ker_est = self.model_KMEst(F.interpolate(lr_, [hei // 2, wid // 2], mode='bicubic'),
+                    ker_est = self.model_KMEst(lr_,
                                                torch.cat((scale_factor, quality_factor,
-                                                          F.interpolate(sigma_est.detach(), [hei // 4, wid // 4],
+                                                          F.interpolate(sigma_est.detach(), [hei, wid],
                                                                         mode='bicubic')), 1), 0)
 
                     ker_est = ker_est * 255.0 / ( scale ** 2)
-                    ker_est = F.interpolate(ker_est, [wid // 16, hei // 16], mode='bicubic')
+
 
                     ker_est = cov2pca(matrix.cuda(), V_pca, ker_est)
 
-                    sigma = F.interpolate(sigma_est, [hei // 2, wid // 2], mode='bicubic')
-                    quality_factor = F.interpolate(quality_factor, [hei // 2, wid // 2], mode='bicubic')
-                    scale_factor = F.interpolate(scale_factor, [hei // 2, wid // 2], mode='bicubic')
-                    ker_est = F.interpolate(ker_est, [hei // 2, wid // 2], mode='bicubic')
+                    sigma = F.interpolate(sigma_est, [hei, wid], mode='bicubic')
+                    quality_factor = F.interpolate(quality_factor, [hei, wid], mode='bicubic')
+                    scale_factor = F.interpolate(scale_factor, [hei, wid], mode='bicubic')
+                    ker_est = F.interpolate(ker_est, [hei, wid], mode='bicubic')
 
 
                     deg_map = torch.cat(
