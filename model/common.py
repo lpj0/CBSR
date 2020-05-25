@@ -29,10 +29,7 @@ def matrix_init():
 
 def dwt_init(x):
     in_batch, in_channel, in_height, in_width = x.size()
-    # h_list_1 = [i for i in range(0, in_height, 2)]
-    # h_list_2 = [i for i in range(1, in_height, 2)]
-    # w_list_1 = [i for i in range(0, in_width, 2)]
-    # w_list_2 = [i for i in range(1, in_width, 2)]
+
     x01 = x[:, :, 0::2, :] / 2
     x02 = x[:, :, 1::2, :] / 2
     x1 = x01[:, :, :, 0::2]
@@ -56,10 +53,7 @@ def iwt_init(x):
     x3 = x[:, out_channel * 2:out_channel * 3, :, :] / 2
     x4 = x[:, out_channel * 3:out_channel * 4, :, :] / 2
 
-    # h_list_1 = [i for i in range(0, out_height, 2)]
-    # h_list_2 = [i for i in range(1, out_height, 2)]
-    # w_list_1 = [i for i in range(0, out_width, 2)]
-    # w_list_2 = [i for i in range(1, out_width, 2)]
+
 
     h = torch.zeros([out_batch, out_channel, out_height, out_width]).float().cuda()
 
@@ -68,9 +62,8 @@ def iwt_init(x):
     h[:, :, 0::2, 1::2] = x1 + x2 - x3 - x4
     h[:, :, 1::2, 1::2] = x1 + x2 + x3 + x4
 
-    # h = x.reshape(r, r, out_batch, in_channel, in_height, in_width)
-    # h = h.transpose(2, 3, 4, 0, 5, 1)
-    return h  # h.reshape(out_batch, out_channel, out_height, out_width)
+
+    return h  
 
 
 class COV2PCA(nn.Module):
@@ -89,20 +82,17 @@ class COV2PCA(nn.Module):
 def cov2pca(matrix, V_pca, x):
 
     sum_weight = torch.ones([1, 225, 1, 1]).float().cuda()
-    # print(x[:, 2, :, :])
-    # print(x.shape)
-    # sum_weight15 = torch.ones([1, 15, 1, 1]).float().cuda()
 
-    cov_a = F.relu(x[:, :1, :, :], inplace=True) #* 255.0 #+ 4e-4
+
+    cov_a = F.relu(x[:, :1, :, :], inplace=True) 
     cov_b = x[:, 1:2, :, :] #* 255.0
-    cov_c = F.relu(x[:, 2:, :, :], inplace=True) #* 255.0 #+ 4e-4
+    cov_c = F.relu(x[:, 2:, :, :], inplace=True) 
     cov_inv_denominator_1 = cov_a * cov_c
     cov_b_2 = cov_b * cov_b
     cov_inv_denominator = cov_inv_denominator_1 - cov_b_2
     gt_idx = torch.gt(cov_inv_denominator, 0).float()
     cov_b_2 = cov_b_2 * gt_idx
 
-    # cov_inv_denominator = cov_inv_denominator * gt_idx + 1e-5
     cov_inv_denominator = cov_inv_denominator_1 - cov_b_2 + 1e-8
 
     inv_covmat = torch.cat((cov_c, -2*cov_b*gt_idx, cov_a), 1) / cov_inv_denominator
