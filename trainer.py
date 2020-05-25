@@ -121,7 +121,7 @@ class Trainer():
             loss_mest.backward()
             self.optimizer_KMEst.step()
 
-            ker_est = ker_est * 255.0 / (F.interpolate(scale_factor * 255.0, [hei_l, wid_l], mode='bicubic') ** 2)
+            ker_est = ker_est * (F.interpolate(scale_factor, [hei_l, wid_l], mode='bicubic') ** 2)  * 255.0
       
             ker_est = cov2pca(matrix.cuda(), V_pca, ker_est)
 
@@ -194,7 +194,7 @@ class Trainer():
 
 
                 tqdm_test = tqdm(self.loader_test, ncols=120)
-                for idx_img, (lr_, hr_, filename) in enumerate(tqdm_test): #, _
+                for idx_img, (lr_, hr_, filename) in enumerate(tqdm_test): 
                     filename = filename[0]
 
                     quality_factor = 90
@@ -210,7 +210,7 @@ class Trainer():
                     
                     hei, wid = hei // 4, wid //4
 
-                    quality_factor = (105.0 - quality_factor) /2 55.0*torch.ones([1, 1, hei, wid]).float().cuda()
+                    quality_factor = (105.0 - quality_factor) / 255.0*torch.ones([1, 1, hei, wid]).float().cuda()
                     sf = scale / 255.0
 
 
@@ -227,7 +227,7 @@ class Trainer():
                                                           F.interpolate(sigma_est.detach(), [hei, wid],
                                                                         mode='bicubic')), 1), 0)
 
-                    ker_est = ker_est * 255.0 / ( scale ** 2)
+                    ker_est = ker_est * ( scale ** 2)  * 255.0
 
 
                     ker_est = cov2pca(matrix.cuda(), V_pca, ker_est)
