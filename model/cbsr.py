@@ -99,6 +99,8 @@ class CBSR(nn.Module):
         self.act = nn.Sequential(act)
 
     def forward(self, x_o, covmat):
+        _, _, hei, wid = covmat.data.size()
+        x_o = F.interpolate(x_o, [hei * 2, wid * 2], mode='bicubic')
         x = self.sub_mean(x_o)
         # covmat = self.UpSample(self.COV2PCA(covmat), x)
         x = torch.cat((self.DWT(x), covmat), 1)
