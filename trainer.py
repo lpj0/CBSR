@@ -181,14 +181,14 @@ class Trainer():
 
                     scale_factor = torch.ones(1, 1, hei, wid).float().cuda() * sf
 
-                   
+                    ## Estimating noise level 
                     sigma_est = self.model_NLEst(lr_, quality_factor, 0)
 
 
-
+                    ## Estimating kernel 
                     ker_est = self.model_KMEst(lr_,
                                                torch.cat((scale_factor, quality_factor, sigma_est), 1), 0)
-
+                    
                     ker_est = ker_est * ( scale ** 2)  
 
 
