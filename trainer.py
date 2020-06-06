@@ -200,6 +200,7 @@ class Trainer():
                         (quality_factor, sigma, scale_factor, ker_est), 1)
                     
                     deg_map = F.interpolate(deg_map, [hei, wid], mode='bicubic')
+                    lr_ = F.interpolate(lr_, [hei, wid], mode='bicubic')
 
 
 
