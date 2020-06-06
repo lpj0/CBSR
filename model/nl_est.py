@@ -23,12 +23,12 @@ class NL_EST(nn.Module):
         self.IWT = common.IWT()
 
 
-        m_head = [conv(args.n_colors*4+2, n_feats*2, kernel_size)]
+        m_head = [conv(args.n_colors*4+4, n_feats*2, kernel_size)]
 
 
 
         m_body = []
-        for _ in range(12):
+        for _ in range(10):
             m_body.append(common.BBlock(conv, n_feats*2, n_feats*2, kernel_size, act=act))
         # m_body.append(conv(n_feats, n_feats, kernel_size))
         #
@@ -50,8 +50,10 @@ class NL_EST(nn.Module):
     def forward(self, x, quality):
         # x = self.sub_mean(x)
         # x = torch.cat((x, quality), 1)
-        x = self.DWT(x)
+        
         x = torch.cat((x, quality), 1)
+        x = self.DWT(x)
+        
         x = self.head(x)
         #
         x = self.body(x)
