@@ -31,7 +31,8 @@ Data Set: [DIV2K 800 training images](https://data.vision.ee.ethz.ch/cvl/DIV2K/)
 --model CBSR --save CBSR --scale 4 --n_feats 64 --save_results --print_model --n_GPUs 1 --testpath your_testset_path --ext_tt .png --n_resblocks 2 --resume -1 --pre_train your_model_path --test_only
 ```
 ## Key Function
-cov2pca
+model.common.cov2pca  -----  convert covariance matrix to kernels and reducing by PCA
+data.common.im_process  -----   image degradation processing
 
 ## Contact
 Please send email to lpj008@126.com
