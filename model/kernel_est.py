@@ -19,10 +19,10 @@ class KERNEL_EST(nn.Module):
         self.DWT = common.DWT()
         self.IWT = common.IWT()
 
-        m_head = [conv(args.n_colors*4+5, n_feats*2, kernel_size)]
+        m_head = [conv(args.n_colors*4+20, n_feats*2, kernel_size)]
 
         m_body = []
-        for _ in range(12):
+        for _ in range(10):
             m_body.append(common.BBlock(conv, n_feats*2, n_feats*2, kernel_size, act=act))
 
         m_tail = [conv(n_feats*2, args.n_colors*4, kernel_size)]
@@ -32,10 +32,10 @@ class KERNEL_EST(nn.Module):
         self.body = nn.Sequential(*m_body)
         self.tail = nn.Sequential(*m_tail)
 
-    def forward(self, x, quality):
-
+    def forward(self, x, deg_map):
+        x = torch.cat((x, deg_map), 1)
         x = self.DWT(x)
-        x = torch.cat((x, quality), 1)
+        
         x = self.head(x)
         x = self.body(x)
         x = self.IWT(self.tail(x))
