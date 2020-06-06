@@ -104,43 +104,8 @@ class Trainer():
 
             
 
-            sigma_est = self.model_NLEst(lr, torch.cat((scale_factor, quality_factor), 1), 0)
-            #
-            loss_nlest = self.loss_NLEst(sigma_est, sigma)
-            #
-            self.optimizer_NLEst.zero_grad()
-            loss_nlest.backward()
-            self.optimizer_NLEst.step()
-            #
-            sigma_est = F.interpolate(sigma_est.detach(), [hei_l, wid_l], mode='bicubic')
-            ker_est = self.model_KMEst(lr, torch.cat((scale_factor, quality_factor, sigma_est.detach()), 1), 0)
-            #
-            #
-            loss_mest = self.loss_KMEst(ker_est, covmat)
-            self.optimizer_KMEst.zero_grad()
-            loss_mest.backward()
-            self.optimizer_KMEst.step()
+            
 
-            ker_est = ker_est * (F.interpolate(scale_factor, [hei_l, wid_l], mode='bicubic') ** 2)  * 255.0
-      
-            ker_est = cov2pca(matrix.cuda(), V_pca, ker_est)
-
-
-
-            idx_scale = 0
-            sigma_est = F.interpolate(sigma_est, [hei, wid], mode='bicubic')
-            quality_factor = F.interpolate(quality_factor, [hei, wid], mode='bicubic')
-            scale_factor = F.interpolate(scale_factor, [hei, wid], mode='bicubic')
-            ker_est = F.interpolate(ker_est, [hei, wid], mode='bicubic')
-
-            deg_map = torch.cat((quality_factor.detach(), sigma_est.detach(), scale_factor.detach(), ker_est.detach()), 1)
-
-            self.optimizer.zero_grad()
-            sr = self.model(lr, deg_map, idx_scale)
-            loss = self.loss(sr, hr)
-            if loss.item() < self.args.skip_threshold * self.error_last:
-                loss.backward()
-                self.optimizer.step()
 
 
             else:
@@ -208,38 +173,33 @@ class Trainer():
 
                     hei, wid = lr_.shape[2:]
                     
-                    hei, wid = hei // 4, wid //4
-
+                   
                     quality_factor = (105.0 - quality_factor) / 255.0*torch.ones([1, 1, hei, wid]).float().cuda()
-                    sf = scale / 255.0
+                    sf = scale / 16.0
 
 
 
                     scale_factor = torch.ones(1, 1, hei, wid).float().cuda() * sf
 
-                    lr_ = F.interpolate(lr_, [hei*2, wid*2], mode='bicubic')
-                    sigma_est = self.model_NLEst(lr_, torch.cat((scale_factor, quality_factor), 1), 0)
+                   
+                    sigma_est = self.model_NLEst(lr_, quality_factor, 0)
 
 
 
                     ker_est = self.model_KMEst(lr_,
-                                               torch.cat((scale_factor, quality_factor,
-                                                          F.interpolate(sigma_est.detach(), [hei, wid],
-                                                                        mode='bicubic')), 1), 0)
+                                               torch.cat((scale_factor, quality_factor, sigma_est), 1), 0)
 
-                    ker_est = ker_est * ( scale ** 2)  * 255.0
+                    ker_est = ker_est * ( scale ** 2)  
 
 
-                    ker_est = cov2pca(matrix.cuda(), V_pca, ker_est)
-
-                    sigma = F.interpolate(sigma_est, [hei, wid], mode='bicubic')
-                    quality_factor = F.interpolate(quality_factor, [hei, wid], mode='bicubic')
-                    scale_factor = F.interpolate(scale_factor, [hei, wid], mode='bicubic')
-                    ker_est = F.interpolate(ker_est, [hei, wid], mode='bicubic')
-
+                    ker_est = cov2pca(matrix.cuda(), V_pca, ker_est)  ## convert cov matrix to PCA coff
+                    
+                    hei, wid = hr_.shape[2:]
 
                     deg_map = torch.cat(
-                        (quality_factor.detach(), sigma.detach(), scale_factor.detach(), ker_est.detach()), 1)
+                        (quality_factor, sigma, scale_factor, ker_est), 1)
+                    
+                    deg_map = F.interpolate(deg_map, [hei, wid], mode='bicubic')
 
 
 
